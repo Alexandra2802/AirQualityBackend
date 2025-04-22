@@ -1,12 +1,12 @@
-const pool = require('../db');
+const pollutantModel = require('../models/pollutantModel');
 
 const getPollutants = async (req, res) => {
   try {
-    const result = await pool.query(`SELECT id, code, name, unit FROM pollutants`);
-    res.json(result.rows);
+    const results = await pollutantModel.getPollutants();
+    res.json(results);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Eroare server la /pollutants' });
+    console.error('Eroare la /pollutants:', err);
+    res.status(500).json({ error: 'Eroare internă la /pollutants' });
   }
 };
 

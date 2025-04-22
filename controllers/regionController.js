@@ -1,14 +1,12 @@
-const pool = require('../db');
+const regionModel = require('../models/regionModel');
 
 const getRegions = async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT id, name, ST_AsGeoJSON(geom) as geometry FROM regions
-    `);
-    res.json(result.rows);
+    const results = await regionModel.getRegions();
+    res.json(results);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Eroare server la /regions' });
+    console.error('Eroare la /regions:', err);
+    res.status(500).json({ error: 'Eroare internă la /regions' });
   }
 };
 
