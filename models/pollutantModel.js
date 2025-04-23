@@ -7,4 +7,12 @@ const getPollutants = async () => {
   return result.rows;
 };
 
-module.exports = { getPollutants };
+const getPollutantById = async ({id}) => {
+  const result = await pool.query(`
+    SELECT id, code, name, unit FROM pollutants WHERE id = $1 ORDER BY id
+  `,[id]);
+  
+  return result.rows[0];
+};
+
+module.exports = { getPollutants, getPollutantById };

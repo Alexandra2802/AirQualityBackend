@@ -39,4 +39,48 @@ const getMeasurements = async (filters) => {
   return result.rows;
 };
 
-module.exports = { getMeasurements };
+const getDailyAvgByPollutant = async ({ region_id, pollutant_id, from, to }) => {
+  const result = await pool.query(`
+    SELECT DATE(timestamp) as day, ROUND(AVG(value)::numeric, 6) as avg
+    FROM measurements
+    WHERE pollutant_id = $1
+      AND timestamp BETWEEN $2 AND $3
+      ${region_id ? 'AND region_id = $4' : ''}
+    GROUP BY day
+    ORDER BY day
+  `, region_id
+    ? [pollutant_id, from, to, region_id]
+    : [pollutant_id, from, to]
+  );
+
+  return result.rows;
+};
+
+/**
+ * Get the point in space with the highest value for a certain pollutant in a certain time period
+ */
+const getPollutionCentroid = async ({ pollutant_id, from, to }) => {
+  const result = await pool.query(`
+    SELECT 
+      r.id,
+      r.name,
+      MAX(m.value) AS max_value,
+      ST_AsGeoJSON(ST_Centroid(r.geom)) AS centroid
+    FROM measurements m
+    JOIN regions r ON m.region_id = r.id
+    WHERE m.pollutant_id = $1
+      AND m.timestamp BETWEEN $2 AND $3
+    GROUP BY r.id, r.name, r.geom
+    ORDER BY max_value DESC
+    LIMIT 1;
+  `, [pollutant_id, from, to]);
+
+  return result.rows[0];
+};
+
+module.exports = {
+  getMeasurements,
+  getDailyAvgByPollutant,
+  getPollutionCentroid
+};
+
