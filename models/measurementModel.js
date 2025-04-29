@@ -1,66 +1,61 @@
-const pool = require('../db');
+const sql = require('../db');
 
 const getMeasurements = async (filters) => {
   const { region_id, pollutant_id, from, to } = filters;
 
-  let conditions = [];
-  let values = [];
+  const conditions = [];
 
   if (region_id) {
-    conditions.push(`region_id = $${values.length + 1}`);
-    values.push(region_id);
+    conditions.push(sql`region_id = ${region_id}`);
   }
 
   if (pollutant_id) {
-    conditions.push(`pollutant_id = $${values.length + 1}`);
-    values.push(pollutant_id);
+    conditions.push(sql`pollutant_id = ${pollutant_id}`);
   }
 
   if (from && to) {
-    conditions.push(`timestamp BETWEEN $${values.length + 1} AND $${values.length + 2}`);
-    values.push(from);
-    values.push(to);
+    conditions.push(sql`timestamp BETWEEN ${from} AND ${to}`);
   } else if (from) {
-    conditions.push(`timestamp >= $${values.length + 1}`);
-    values.push(from);
+    conditions.push(sql`timestamp >= ${from}`);
   } else if (to) {
-    conditions.push(`timestamp <= $${values.length + 1}`);
-    values.push(to);
+    conditions.push(sql`timestamp <= ${to}`);
   }
 
-  let query = `SELECT * FROM measurements`;
+  let query = sql`SELECT * FROM measurements`;
+
   if (conditions.length > 0) {
-    query += ' WHERE ' + conditions.join(' AND ');
+    const whereClause = conditions.reduce((acc, curr, index) => {
+      return index === 0 ? sql`${curr}` : sql`${acc} AND ${curr}`;
+    }, sql``);
+    query = sql`${query} WHERE ${whereClause}`;
   }
 
-  query += ' ORDER BY timestamp DESC LIMIT 100';
+  query = sql`${query} ORDER BY timestamp DESC LIMIT 100`;
 
-  const result = await pool.query(query, values);
-  return result.rows;
+  const result = await query;
+  return result; // rezultatul este deja un array
 };
 
 const getDailyAvgByPollutant = async ({ region_id, pollutant_id, from, to }) => {
-  const result = await pool.query(`
+  let query = sql`
     SELECT DATE(timestamp) as day, ROUND(AVG(value)::numeric, 6) as avg
     FROM measurements
-    WHERE pollutant_id = $1
-      AND timestamp BETWEEN $2 AND $3
-      ${region_id ? 'AND region_id = $4' : ''}
-    GROUP BY day
-    ORDER BY day
-  `, region_id
-    ? [pollutant_id, from, to, region_id]
-    : [pollutant_id, from, to]
-  );
+    WHERE pollutant_id = ${pollutant_id}
+      AND timestamp BETWEEN ${from} AND ${to}
+  `;
 
-  return result.rows;
+  if (region_id) {
+    query = sql`${query} AND region_id = ${region_id}`;
+  }
+
+  query = sql`${query} GROUP BY day ORDER BY day`;
+
+  const result = await query;
+  return result;
 };
 
-/**
- * Get the point in space with the highest value for a certain pollutant in a certain time period
- */
 const getPollutionCentroid = async ({ pollutant_id, from, to }) => {
-  const result = await pool.query(`
+  const result = await sql`
     SELECT 
       r.id,
       r.name,
@@ -68,14 +63,14 @@ const getPollutionCentroid = async ({ pollutant_id, from, to }) => {
       ST_AsGeoJSON(ST_Centroid(r.geom)) AS centroid
     FROM measurements m
     JOIN regions r ON m.region_id = r.id
-    WHERE m.pollutant_id = $1
-      AND m.timestamp BETWEEN $2 AND $3
+    WHERE m.pollutant_id = ${pollutant_id}
+      AND m.timestamp BETWEEN ${from} AND ${to}
     GROUP BY r.id, r.name, r.geom
     ORDER BY max_value DESC
-    LIMIT 1;
-  `, [pollutant_id, from, to]);
+    LIMIT 1
+  `;
 
-  return result.rows[0];
+  return result[0]; // întotdeauna 1 singur rezultat
 };
 
 module.exports = {
@@ -83,4 +78,3 @@ module.exports = {
   getDailyAvgByPollutant,
   getPollutionCentroid
 };
-
