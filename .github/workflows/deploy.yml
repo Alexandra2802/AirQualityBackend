@@ -1,0 +1,34 @@
+name: Deploy to AWS Elastic Beanstalk
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.10
+
+      - name: Install AWS EB CLI
+        run: |
+          pip install awsebcli --upgrade --user
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Deploy to Elastic Beanstalk
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          eb init ${{ secrets.EB_APP_NAME }} --region ${{ secrets.AWS_REGION }} --platform "Node.js" --interactive false
+          eb use ${{ secrets.EB_ENV_NAME }}
+          eb deploy
