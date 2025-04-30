@@ -17,16 +17,23 @@ jobs:
         with:
           python-version: 3.10
 
-      - name: Install EB CLI
+      - name: Install EB CLI and add to PATH
         run: |
-          python -m pip install --upgrade --user awsebcli
-        env:
-          PATH: ${{ github.env.PATH }}:${{ runner.temp }}/.local/bin
+          pip install --upgrade --user awsebcli
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Deploy to Elastic Beanstalk
+      - name: Verify EB CLI
+        run: |
+          export PATH=$PATH:$HOME/.local/bin
+          eb --version
+
+      - name: Deploy to AWS Elastic Beanstalk
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |
+          export PATH=$PATH:$HOME/.local/bin
+          eb init ${{ secrets.EB_APP_NAME }} --region $AWS_REGION --platform "Node.js" --interactive false
+          eb use ${{ secrets.EB_ENV_NAME }}
           eb deploy
