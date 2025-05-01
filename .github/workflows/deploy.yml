@@ -12,8 +12,16 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
 
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      - name: Install Node.js dependencies
+        run: npm install
+
       - name: Zip project
-        run: zip -r app.zip . -x '*.git*'
+        run: zip -r app.zip . -x '*.git*' 'node_modules/.cache/*'
 
       - name: Upload to S3
         run: |
