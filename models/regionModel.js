@@ -8,3 +8,4 @@ const getRegions = async () => {
 };
 
 module.exports = { getRegions };
+
