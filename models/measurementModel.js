@@ -55,6 +55,7 @@ const getDailyAvgByPollutant = async ({ region_id, pollutant_id, from, to }) => 
 };
 
 const getPollutionCentroid = async ({ pollutant_id, from, to }) => {
+  
   const result = await sql`
     SELECT 
       r.id,
@@ -70,7 +71,7 @@ const getPollutionCentroid = async ({ pollutant_id, from, to }) => {
     LIMIT 1
   `;
 
-  return result[0]; // întotdeauna 1 singur rezultat
+  return result[0]; 
 };
 
 module.exports = {
