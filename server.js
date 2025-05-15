@@ -4,6 +4,7 @@ const measurementsRoutes = require('./routes/measurements');
 const regionsRoutes = require('./routes/regions');
 const pollutantRoutes = require('./routes/pollutants');
 const heatmapRoutes = require ("./routes/heatmap.js");
+const animatedHeatmapRoutes = require('./routes/animatedheatmap.js')
 
 const app = express();
 app.use(cors());
@@ -12,6 +13,8 @@ app.use(express.json());
 app.use('/api/measurements', measurementsRoutes);
 app.use('/api/regions', regionsRoutes);
 app.use('/api/pollutants', pollutantRoutes);
+app.use('/api/heatmap', heatmapRoutes);
+app.use('/api/animated-heatmap', animatedHeatmapRoutes);
 app.use("/api", heatmapRoutes);
 
 
