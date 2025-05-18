@@ -10,7 +10,7 @@ const getCountyFromRegion = async (req, res) => {
       return res.status(404).json({ message: "Judetul nu a fost gasit" });
     }
 
-    res.json({ county: county.name, code: county.code });
+    res.json({ name: county.name, code: county.code });
   } catch (err) {
     console.error("Eroare la identificarea judetului:", err);
     res.status(500).json({ message: "Eroare interna" });
