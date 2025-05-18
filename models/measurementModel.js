@@ -33,7 +33,7 @@ const getMeasurements = async (filters) => {
   query = sql`${query} ORDER BY timestamp DESC LIMIT 100`;
 
   const result = await query;
-  return result; // rezultatul este deja un array
+  return result; 
 };
 
 const getDailyAvgByPollutant = async ({ region_id, pollutant_id, from, to }) => {
