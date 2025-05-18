@@ -6,6 +6,7 @@ const pollutantRoutes = require('./routes/pollutants');
 const heatmapRoutes = require ("./routes/heatmap.js");
 const animatedHeatmapRoutes = require('./routes/animatedheatmap.js')
 const countyRoutes = require("./routes/counties");
+const animatedCentroidRoutes = require("./routes/animatedCentroid.js")
 
 const app = express();
 app.use(cors());
@@ -18,6 +19,7 @@ app.use('/api/heatmap', heatmapRoutes);
 app.use('/api/animated-heatmap', animatedHeatmapRoutes);
 app.use("/api", heatmapRoutes);
 app.use("/api", countyRoutes);
+app.use("/api", animatedCentroidRoutes);
 
 
 const PORT = process.env.PORT || 3001;
