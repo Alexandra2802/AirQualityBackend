@@ -4,4 +4,5 @@ const { getRegions } = require('../controllers/regionController');
 
 router.get('/', getRegions);
 
+
 module.exports = router;
